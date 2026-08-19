@@ -1,0 +1,55 @@
+{
+  "article": "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads",
+  "script_version": "3.2.0-audited",
+  "timestamp_utc": "2026-08-19T10:47:54+00:00",
+  "input": "/home/noam/metagenomic-phase-coherence/cli_integration_current/input.fa",
+  "input_mode": "FASTA",
+  "sample": "input",
+  "base_outdir": "/home/noam/metagenomic-phase-coherence/cli_integration_current/period3",
+  "image_format": "png",
+  "plot_style": "dots",
+  "skip_existing": false,
+  "collapse_duplicates": false,
+  "exclude_duplicate_flag": null,
+  "bam_sequence_orientation": null,
+  "fq_which": null,
+  "threads": null,
+  "count_workers": 1,
+  "max_reads": 0,
+  "min_read_count": 1,
+  "explicit_lengths": true,
+  "k_values": [
+    1
+  ],
+  "read_lengths_processed": [
+    {
+      "length": 60,
+      "observed_read_count": 180,
+      "analyzed_read_count": 180
+    }
+  ],
+  "total_scanned_reads": 180,
+  "total_raw_reads_counted": 180,
+  "total_analyzed_reads": 180,
+  "invalid_sequence_count_scan": 0,
+  "invalid_sequence_count_counting": 0,
+  "duplicate_sequence_count": 0,
+  "script_sha256": "486118af0c98b8b4ea8a657325dfa40c46046b9c637d1869b4d76f456c37b767",
+  "python_version": "3.12.13 | packaged by conda-forge | (main, Aug 11 2026, 10:27:28) [GCC 14.4.0]",
+  "period3": {
+    "enabled": true,
+    "start": 10,
+    "end": 40,
+    "alpha": 0.05,
+    "permutations": 99,
+    "base_seed": 101,
+    "per_length_seed_rule": "base_seed + read_length * 10007",
+    "multiple_testing": "Holm adjustment across A/T/G/C",
+    "statistics_module_version": "3.0.0-audited",
+    "statistics_module_sha256": "fa168f4755bbf27544f037bbefbe97b314387954ef463fe15027e44942dc695d"
+  },
+  "outputs": {
+    "read_length_stats_csv": "stats/read_lengths.csv",
+    "read_length_stats_json": "stats/read_lengths.json"
+  }
+}

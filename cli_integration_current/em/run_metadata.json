@@ -1,0 +1,41 @@
+{
+  "script": "six_state_em.py",
+  "script_version": "4.2.0-audited",
+  "script_sha256": "4c65970f25e1633633c9da9a4e7aa77b1c9681430f01bb6e13087e6ce20c2fd5",
+  "input": [
+    "/home/noam/metagenomic-phase-coherence/cli_integration_current/input.fa"
+  ],
+  "input_type": "fasta",
+  "out": "/home/noam/metagenomic-phase-coherence/cli_integration_current/em",
+  "lengths": [
+    60
+  ],
+  "trim5": 0,
+  "trim3": 0,
+  "dedup": "none",
+  "max_unique_per_length": null,
+  "alpha": 0.5,
+  "max_iter": 100,
+  "tol": 1e-06,
+  "seed": 1,
+  "restarts": 2,
+  "threads": 1,
+  "progress_every": 0,
+  "canonicalize": "full6",
+  "include_secondary": false,
+  "include_supplementary": false,
+  "include_qcfail": false,
+  "include_duplicates_flag": false,
+  "bam_sequence_orientation": null,
+  "allow_ambiguous": false,
+  "collection_stats": {
+    "records_scanned": 180,
+    "skipped_ambiguous": 0,
+    "skipped_duplicate": 0,
+    "collected_by_length": {
+      "60": 180
+    }
+  },
+  "initialization": "global base composition plus Normal(0, 0.01), clipped and row-normalized; pseudocount alpha is applied only in the M-step",
+  "restart_selection": "largest final complete-data hard-assignment log score"
+}

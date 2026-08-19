@@ -1,0 +1,72 @@
+{
+  "article": "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads",
+  "csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/period3/input/csv/kmer/L60/k1.csv",
+  "read_length": 60,
+  "read_count": 180,
+  "observed_read_count": 180,
+  "window": [
+    10,
+    40
+  ],
+  "alpha": 0.05,
+  "permutations": 99,
+  "seed": 600521,
+  "period3_statistics_version": "3.0.0-audited",
+  "period3_statistics_sha256": "fa168f4755bbf27544f037bbefbe97b314387954ef463fe15027e44942dc695d",
+  "status": "ok",
+  "all_significant": false,
+  "fits": [
+    {
+      "base": "A",
+      "n_cycles": 31,
+      "intercept": 0.33333333333333326,
+      "cos_coef": -7.085627145075945e-18,
+      "sin_coef": 1.2272666218760847e-17,
+      "r2": 0.8888888888888888,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "amplitude": 1.4171254290151976e-17,
+      "phase_degrees": 119.99999999999982
+    },
+    {
+      "base": "T",
+      "n_cycles": 31,
+      "intercept": 0.33333333333333326,
+      "cos_coef": -7.085627145075945e-18,
+      "sin_coef": 1.2272666218760847e-17,
+      "r2": 0.8888888888888888,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "amplitude": 1.4171254290151976e-17,
+      "phase_degrees": 119.99999999999982
+    },
+    {
+      "base": "G",
+      "n_cycles": 31,
+      "intercept": 0.33333333333333326,
+      "cos_coef": -7.085627145075945e-18,
+      "sin_coef": 1.2272666218760847e-17,
+      "r2": 0.8888888888888888,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "amplitude": 1.4171254290151976e-17,
+      "phase_degrees": 119.99999999999982
+    },
+    {
+      "base": "C",
+      "n_cycles": 31,
+      "intercept": 0.0,
+      "cos_coef": 0.0,
+      "sin_coef": 0.0,
+      "r2": 0.0,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "amplitude": 0.0,
+      "phase_degrees": 0.0
+    }
+  ]
+}

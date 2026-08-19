@@ -1,0 +1,18 @@
+{
+  "script": "plot_simulation_r2.py",
+  "script_version": "2.0.0-audited",
+  "script_sha256": "10f3a1039ba348fb4bfe13fa2322538c30bd0ed1d3824c6d304b42d742e710cc",
+  "input_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/simulation_results.csv",
+  "summary_rule": "average R2 across A/T/G/C within each replicate, then mean and 95% t CI across independent replicate means",
+  "input_rows": 16,
+  "replicate_rows": 4,
+  "condition_rows": 2,
+  "outputs": {
+    "replicate_means_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/sim_plot/simulation_replicate_means.csv",
+    "condition_summary_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/sim_plot/simulation_condition_summary.csv",
+    "plots": [
+      "/home/noam/metagenomic-phase-coherence/cli_integration_current/sim_plot/simulation_r2_bacterial.png",
+      "/home/noam/metagenomic-phase-coherence/cli_integration_current/sim_plot/simulation_r2_bacterial.pdf"
+    ]
+  }
+}

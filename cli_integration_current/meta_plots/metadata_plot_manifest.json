@@ -1,0 +1,24 @@
+{
+  "script": "plot_project_summary.py",
+  "script_version": "2.0.0-audited",
+  "script_sha256": "fde40328efa41b871b55c5682940f0d46459e8d78a4cbc3a0240c08b8dae67d6",
+  "r2_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/aggregate/best.csv",
+  "metadata_tsv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/meta.tsv",
+  "parameters_requested": [
+    "project_name"
+  ],
+  "parameters_skipped": [],
+  "min_libraries_per_category": 1,
+  "jitter_seed": 0,
+  "internal_project_label": "Slon2017",
+  "r2_rows": 1,
+  "joined_rows": 1,
+  "unmatched_rows": 0,
+  "outputs": {
+    "joined_source_data_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/meta_plots/period3_metadata_joined_source_data.csv",
+    "unmatched_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/meta_plots/unmatched_libraries.csv",
+    "plots": [
+      "/home/noam/metagenomic-phase-coherence/cli_integration_current/meta_plots/dotplot_by_project_name.png"
+    ]
+  }
+}
