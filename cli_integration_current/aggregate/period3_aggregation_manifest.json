@@ -1,0 +1,17 @@
+{
+  "script": "aggregate_library_results.py",
+  "script_version": "2.0.0-audited",
+  "script_sha256": "0580f8e21539f39404bb4ed262f75968c8699f485299f07655873a4b6e041e17",
+  "base_outdir": "/home/noam/metagenomic-phase-coherence/cli_integration_current/period3",
+  "source_pattern": "stats/period3/kmer/L*/k1_period3.json",
+  "selection_statistic": "mean R2 across A/T/G/C at each eligible exact read length, then maximum over lengths; ties by larger analyzed read count then shorter length",
+  "source_json_files_found": 1,
+  "valid_length_rows": 1,
+  "libraries": 1,
+  "parse_errors": 0,
+  "outputs": {
+    "library_summary_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/aggregate/best.csv",
+    "all_lengths_csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/aggregate/period3_all_eligible_lengths.csv",
+    "errors_txt": "/home/noam/metagenomic-phase-coherence/cli_integration_current/aggregate/period3_aggregation_errors.txt"
+  }
+}

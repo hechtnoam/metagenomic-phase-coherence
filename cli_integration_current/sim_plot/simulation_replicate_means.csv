@@ -1,0 +1,5 @@
+genome,bias_5prime,bias_3prime,replicate,mean_r2_across_bases,sd_r2_across_bases
+bacterial,0.5,0.5,1,0.025,0.012909944487358056
+bacterial,0.5,0.5,2,0.035,0.012909944487358055
+bacterial,1.0,1.0,1,0.83,0.02581988897471603
+bacterial,1.0,1.0,2,0.85,0.025819888974716137

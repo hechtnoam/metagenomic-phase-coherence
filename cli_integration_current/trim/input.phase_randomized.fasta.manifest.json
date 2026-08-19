@@ -1,0 +1,32 @@
+{
+  "script": "phase_redistribution.py",
+  "script_version": "2.2.0-audited",
+  "script_sha256": "1f0cb352817959bcb215bed238fca83be5036d1f3935a30fbc01148acfb062bd",
+  "input": "/home/noam/metagenomic-phase-coherence/cli_integration_current/input.fa",
+  "output": "/home/noam/metagenomic-phase-coherence/cli_integration_current/trim/input.phase_randomized.fasta",
+  "input_format": "fasta",
+  "target_input_length": 60,
+  "output_length": 58,
+  "mode": "random",
+  "seed": 9,
+  "fixed_five_trim": null,
+  "total_trim": 2,
+  "ambiguous_input_policy": "exclude any input read containing symbols outside A/C/G/T before offset sampling",
+  "bam_filters": {
+    "mapped_only": false,
+    "min_mapq": null,
+    "secondary_supplementary_qcfail_excluded": true,
+    "sequence_orientation": "original sequenced orientation restored before trimming"
+  },
+  "counts": {
+    "records_seen": 180,
+    "length_matched": 180,
+    "ambiguous_excluded": 0,
+    "records_written": 180,
+    "offset_counts": {
+      "0": 71,
+      "1": 50,
+      "2": 59
+    }
+  }
+}

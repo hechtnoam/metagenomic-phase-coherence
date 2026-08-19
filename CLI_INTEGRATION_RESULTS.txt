@@ -1,0 +1,1 @@
+PASS	cli_integration	all runnable reviewed command-line entry points produced expected outputs and manifests

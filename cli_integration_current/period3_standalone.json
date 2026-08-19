@@ -1,0 +1,75 @@
+{
+  "article": "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads",
+  "script_version": "3.0.0-audited",
+  "csv": "/home/noam/metagenomic-phase-coherence/cli_integration_current/period3/input/csv/kmer/L60/k1.csv",
+  "read_length": null,
+  "read_count": null,
+  "window": [
+    10,
+    40
+  ],
+  "alpha": 0.05,
+  "all_significant": false,
+  "fits": [
+    {
+      "base": "A",
+      "start": 10,
+      "end": 40,
+      "n_cycles": 31,
+      "intercept": 0.33333333333333326,
+      "cos_coef": -7.085627145075945e-18,
+      "sin_coef": 1.2272666218760847e-17,
+      "amplitude": 1.4171254290151976e-17,
+      "r2": 0.8888888888888888,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "phase_degrees": 119.99999999999982
+    },
+    {
+      "base": "T",
+      "start": 10,
+      "end": 40,
+      "n_cycles": 31,
+      "intercept": 0.33333333333333326,
+      "cos_coef": -7.085627145075945e-18,
+      "sin_coef": 1.2272666218760847e-17,
+      "amplitude": 1.4171254290151976e-17,
+      "r2": 0.8888888888888888,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "phase_degrees": 119.99999999999982
+    },
+    {
+      "base": "G",
+      "start": 10,
+      "end": 40,
+      "n_cycles": 31,
+      "intercept": 0.33333333333333326,
+      "cos_coef": -7.085627145075945e-18,
+      "sin_coef": 1.2272666218760847e-17,
+      "amplitude": 1.4171254290151976e-17,
+      "r2": 0.8888888888888888,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "phase_degrees": 119.99999999999982
+    },
+    {
+      "base": "C",
+      "start": 10,
+      "end": 40,
+      "n_cycles": 31,
+      "intercept": 0.0,
+      "cos_coef": 0.0,
+      "sin_coef": 0.0,
+      "amplitude": 0.0,
+      "r2": 0.0,
+      "p_value": 1.0,
+      "p_value_adjusted": 1.0,
+      "significant": false,
+      "phase_degrees": 0.0
+    }
+  ]
+}

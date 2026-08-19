@@ -1,0 +1,17 @@
+genome,bias_5prime,bias_3prime,replicate,base,r2
+bacterial,0.5,0.5,1,A,0.01
+bacterial,0.5,0.5,1,T,0.02
+bacterial,0.5,0.5,1,G,0.03
+bacterial,0.5,0.5,1,C,0.04
+bacterial,0.5,0.5,2,A,0.02
+bacterial,0.5,0.5,2,T,0.03
+bacterial,0.5,0.5,2,G,0.04
+bacterial,0.5,0.5,2,C,0.05
+bacterial,1.0,1.0,1,A,0.80
+bacterial,1.0,1.0,1,T,0.82
+bacterial,1.0,1.0,1,G,0.84
+bacterial,1.0,1.0,1,C,0.86
+bacterial,1.0,1.0,2,A,0.82
+bacterial,1.0,1.0,2,T,0.84
+bacterial,1.0,1.0,2,G,0.86
+bacterial,1.0,1.0,2,C,0.88

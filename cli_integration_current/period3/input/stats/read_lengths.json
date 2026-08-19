@@ -1,0 +1,19 @@
+{
+  "article": "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads",
+  "input": "/home/noam/metagenomic-phase-coherence/cli_integration_current/input.fa",
+  "min_read_count": 1,
+  "total_scanned_reads": 180,
+  "total_raw_reads_counted": 180,
+  "total_analyzed_reads": 180,
+  "invalid_sequence_count": 0,
+  "duplicate_sequence_count": 0,
+  "lengths": [
+    {
+      "length": 60,
+      "observed_read_count": 180,
+      "analyzed_read_count": 180,
+      "processed": true,
+      "passed_min_read_count": true
+    }
+  ]
+}
