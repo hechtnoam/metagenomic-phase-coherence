@@ -9,7 +9,7 @@ authors:
 version: 1.0.0
 license: MIT
 date-released: 2026-08-19
-repository-code: "https://github.com/REPLACE_WITH_OWNER/period3-metagenomic-reads"
+repository-code: "https://github.com/hechtnoam/metagenomic-phase-coherence"
 preferred-citation:
   type: article
   title: "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads"
