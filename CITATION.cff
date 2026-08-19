@@ -1,0 +1,19 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the associated manuscript."
+title: "Period-3 periodicity in metagenomic sequencing reads"
+type: software
+authors:
+  - family-names: Hecht
+    given-names: Noam
+    email: noamhecht@mail.tau.ac.il
+version: 1.0.0
+license: MIT
+date-released: 2026-08-19
+repository-code: "https://github.com/REPLACE_WITH_OWNER/period3-metagenomic-reads"
+preferred-citation:
+  type: article
+  title: "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads"
+  authors:
+    - family-names: Hecht
+      given-names: Noam
+  notes: "Complete the full author list, journal, year, volume, pages, and DOI when finalized."
