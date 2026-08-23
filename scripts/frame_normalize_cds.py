@@ -27,7 +27,7 @@ try:
 except ImportError:
     IntervalTree = None  # type: ignore[assignment]
 
-SCRIPT_VERSION = "2.1.0-audited"
+SCRIPT_VERSION = "2.2.0-audited-matched-control"
 DNA = frozenset("ACGT")
 COMPLEMENT = str.maketrans("ACGTNacgtn", "TGCANtgcan")
 
@@ -150,6 +150,7 @@ def process_bam_to_fasta(
     bam_path: str,
     gff_path: str,
     output_fasta: str,
+    matched_output_fasta: Optional[str] = None,
     *,
     min_mapq: int = 25,
     include_duplicate_flag: bool = False,
@@ -161,74 +162,93 @@ def process_bam_to_fasta(
     phase_counts = collections.Counter()
     trim5_counts = collections.Counter()
     output_length_counts = collections.Counter()
+    matched_length_counts = collections.Counter()
 
-    with pysam.AlignmentFile(bam_path, "rb") as bam, open(output_fasta, "w") as output:
-        for read in bam.fetch(until_eof=True):
-            stats["records_seen"] += 1
-            if read.is_unmapped:
-                stats["unmapped"] += 1
-                continue
-            if read.is_secondary or read.is_supplementary or read.is_qcfail:
-                stats["non_primary_or_qcfail"] += 1
-                continue
-            if read.is_duplicate and not include_duplicate_flag:
-                stats["duplicate_flag_excluded"] += 1
-                continue
-            if read.mapping_quality < min_mapq:
-                stats["low_mapq"] += 1
-                continue
-            if not has_simple_cigar(read):
-                stats["complex_cigar_excluded"] += 1
-                continue
-            chrom = read.reference_name
-            if chrom not in cds_trees:
-                stats["contig_without_cds"] += 1
-                continue
-            cds, reason = choose_unique_cds(read, cds_trees[chrom])
-            if cds is None:
-                stats[reason] += 1
-                continue
-
-            stored_sequence = read.query_sequence
-            if stored_sequence is None:
-                stats["missing_sequence"] += 1
-                continue
-            # pysam query_sequence is reverse-complemented in reverse alignments;
-            # get_forward_sequence restores the sequence as originally read (5'->3').
-            if hasattr(read, "get_forward_sequence"):
-                forward_sequence = read.get_forward_sequence()
-                if forward_sequence is None:
+    matched_handle = open(matched_output_fasta, "w") if matched_output_fasta else None
+    try:
+        bam_handle = pysam.AlignmentFile(bam_path, "rb")
+        output = open(output_fasta, "w")
+        with bam_handle as bam, output:
+            for read in bam.fetch(until_eof=True):
+                stats["records_seen"] += 1
+                if read.is_unmapped:
+                    stats["unmapped"] += 1
+                    continue
+                if read.is_secondary or read.is_supplementary or read.is_qcfail:
+                    stats["non_primary_or_qcfail"] += 1
+                    continue
+                if read.is_duplicate and not include_duplicate_flag:
+                    stats["duplicate_flag_excluded"] += 1
+                    continue
+                if read.mapping_quality < min_mapq:
+                    stats["low_mapq"] += 1
+                    continue
+                if not has_simple_cigar(read):
+                    stats["complex_cigar_excluded"] += 1
+                    continue
+                chrom = read.reference_name
+                if chrom not in cds_trees:
+                    stats["contig_without_cds"] += 1
+                    continue
+                cds, reason = choose_unique_cds(read, cds_trees[chrom])
+                if cds is None:
+                    stats[reason] += 1
+                    continue
+    
+                stored_sequence = read.query_sequence
+                if stored_sequence is None:
                     stats["missing_sequence"] += 1
                     continue
-                coding_sequence = forward_sequence.upper()
-            else:
-                coding_sequence = reverse_complement(stored_sequence) if read.is_reverse else stored_sequence.upper()
-            if not coding_sequence or any(base not in DNA for base in coding_sequence):
-                stats["ambiguous_sequence"] += 1
-                continue
+                # pysam query_sequence is reverse-complemented in reverse alignments;
+                # get_forward_sequence restores the sequence as originally read (5'->3').
+                if hasattr(read, "get_forward_sequence"):
+                    forward_sequence = read.get_forward_sequence()
+                    if forward_sequence is None:
+                        stats["missing_sequence"] += 1
+                        continue
+                    coding_sequence = forward_sequence.upper()
+                else:
+                    coding_sequence = reverse_complement(stored_sequence) if read.is_reverse else stored_sequence.upper()
+                if not coding_sequence or any(base not in DNA for base in coding_sequence):
+                    stats["ambiguous_sequence"] += 1
+                    continue
+    
+                phase = compute_phase_from_coordinates(
+                    read.reference_start, read.reference_end, read.is_reverse, cds
+                )
+                corrected, trim_5p, trim_3p = phase_correct_sequence(coding_sequence, phase)
+                if len(corrected) < 3:
+                    stats["too_short_after_trim"] += 1
+                    continue
+    
+                record_id = f"{stats['written'] + 1:08d}|{read.query_name}"
+                if matched_handle is not None:
+                    matched_handle.write(
+                        f">{record_id}|phase={phase}|normalized=0|cds={cds.identifier}"
+                        f"|cds_strand={cds.strand}\n{coding_sequence}\n"
+                    )
+                    matched_length_counts[len(coding_sequence)] += 1
 
-            phase = compute_phase_from_coordinates(
-                read.reference_start, read.reference_end, read.is_reverse, cds
-            )
-            corrected, trim_5p, trim_3p = phase_correct_sequence(coding_sequence, phase)
-            if len(corrected) < 3:
-                stats["too_short_after_trim"] += 1
-                continue
-
-            output.write(
-                f">{read.query_name}|phase={phase}|trim5={trim_5p}|trim3={trim_3p}"
-                f"|cds={cds.identifier}|cds_strand={cds.strand}\n{corrected}\n"
-            )
-            stats["written"] += 1
-            phase_counts[phase] += 1
-            trim5_counts[trim_5p] += 1
-            output_length_counts[len(corrected)] += 1
+                output.write(
+                    f">{record_id}|phase={phase}|normalized=1|trim5={trim_5p}|trim3={trim_3p}"
+                    f"|cds={cds.identifier}|cds_strand={cds.strand}\n{corrected}\n"
+                )
+                stats["written"] += 1
+                phase_counts[phase] += 1
+                trim5_counts[trim_5p] += 1
+                output_length_counts[len(corrected)] += 1
+    
+    finally:
+        if matched_handle is not None:
+            matched_handle.close()
 
     return {
         "counts": dict(stats),
         "input_phase_counts": {str(k): int(phase_counts[k]) for k in (0, 1, 2)},
         "five_prime_trim_counts": {str(k): int(trim5_counts[k]) for k in (0, 1, 2)},
         "output_length_counts": {str(k): int(v) for k, v in sorted(output_length_counts.items())},
+        "matched_unnormalized_length_counts": {str(k): int(v) for k, v in sorted(matched_length_counts.items())},
+        "matched_pair_count": int(stats["written"]),
     }
 
 
@@ -236,7 +256,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Normalize sense CDS reads to codon phase 0.")
     parser.add_argument("--bam", required=True)
     parser.add_argument("--gff", required=True)
-    parser.add_argument("--output", required=True, help="Output FASTA")
+    parser.add_argument("--output", required=True, help="Frame-normalized output FASTA")
+    parser.add_argument(
+        "--matched-output",
+        default=None,
+        help=(
+            "Optional FASTA containing the exact same accepted reads before frame normalization. "
+            "If omitted, defaults to <output stem>.matched_unnormalized<suffix>."
+        ),
+    )
     parser.add_argument("--min-mapq", type=int, default=25)
     parser.add_argument("--include-duplicate-flag", action="store_true")
     return parser
@@ -248,10 +276,18 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         raise ValueError("min-mapq must be non-negative.")
     output_path = Path(args.output)
     output_path.parent.mkdir(parents=True, exist_ok=True)
+    if args.matched_output:
+        matched_output_path = Path(args.matched_output)
+    else:
+        matched_output_path = output_path.with_name(
+            output_path.stem + ".matched_unnormalized" + output_path.suffix
+        )
+    matched_output_path.parent.mkdir(parents=True, exist_ok=True)
     summary = process_bam_to_fasta(
         args.bam,
         args.gff,
         str(output_path),
+        str(matched_output_path),
         min_mapq=args.min_mapq,
         include_duplicate_flag=args.include_duplicate_flag,
     )
@@ -262,6 +298,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "bam": args.bam,
         "gff": args.gff,
         "output": str(output_path),
+        "matched_unnormalized_output": str(matched_output_path),
+        "matched_control_definition": (
+            "Exact same accepted reads and coding orientation as normalized output, "
+            "written before phase-dependent trimming"
+        ),
         "min_mapq": args.min_mapq,
         "include_duplicate_flag": args.include_duplicate_flag,
         "filters": {
@@ -278,7 +319,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     metadata_path = output_path.with_suffix(output_path.suffix + ".metadata.json")
     metadata_path.write_text(json.dumps(metadata, indent=2))
     print(json.dumps(summary, indent=2))
-    print(f"Output written to {output_path}")
+    print(f"Frame-normalized output written to {output_path}")
+    print(f"Matched unnormalized output written to {matched_output_path}")
     print(f"Metadata written to {metadata_path}")
     return 0
 

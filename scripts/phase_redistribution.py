@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 """Create phase-redistributed or fixed-trim controls.
 
-For the random control, each exact-length read receives a uniformly sampled
-5' trim of 0, 1, or 2 nucleotides and a complementary 3' trim so that the
-total trim is always two nucleotides.  A fixed-trim mode is provided as the
-matched control required by the manuscript.
+For the random control, each unique exact-length input sequence is assigned
+deterministically (given the seed) to a 5' trim of 0, 1, or 2 nucleotides,
+with a complementary 3' trim so that the total trim is always two nucleotides.
+All duplicate copies of the same original sequence therefore receive the same
+trim offset. A fixed-trim mode is provided as the matched control.
 """
 
 from __future__ import annotations
@@ -13,7 +14,6 @@ import argparse
 import gzip
 import hashlib
 import json
-import random
 from collections import Counter
 from pathlib import Path
 from typing import Optional, Sequence, TextIO, Tuple
@@ -25,7 +25,7 @@ try:
 except ImportError:  # FASTA/FASTQ operation remains available
     pysam = None  # type: ignore[assignment]
 
-SCRIPT_VERSION = "2.2.0-audited"
+SCRIPT_VERSION = "2.3.0-audited-sequence-level-randomization"
 TOTAL_TRIM = 2
 COMPLEMENT_TRANS = str.maketrans("ACGTNacgtn", "TGCANtgcan")
 
@@ -57,10 +57,20 @@ def open_text(path: str, mode: str) -> TextIO:
     return open(path, mode)
 
 
-def choose_five_trim(rng: random.Random, mode: str, fixed_five_trim: int) -> int:
+def choose_five_trim(sequence: str, seed: int, mode: str, fixed_five_trim: int) -> int:
+    """Choose the trim offset.
+
+    In random mode the assignment is a deterministic function of the original
+    sequence and seed. Consequently, exact duplicate input sequences always
+    receive the same trim offset, preventing randomization from splitting one
+    duplicate class into several distinct post-trim sequences.
+    """
+
     if mode == "fixed":
         return fixed_five_trim
-    return rng.randrange(3)
+    payload = f"{seed}\0{sequence}".encode("ascii")
+    digest = hashlib.blake2b(payload, digest_size=8, person=b"phase-trim").digest()
+    return int.from_bytes(digest, byteorder="big", signed=False) % 3
 
 
 def process_fastx(
@@ -74,7 +84,6 @@ def process_fastx(
 ) -> dict:
     """Trim FASTA/FASTQ records; SeqRecord slicing preserves FASTQ qualities."""
 
-    rng = random.Random(seed)
     stats = Counter(records_seen=0, length_matched=0, ambiguous_excluded=0, records_written=0)
     offsets = Counter()
     with open_text(infile, "r") as in_handle, open_text(outfile, "w") as out_handle:
@@ -87,7 +96,7 @@ def process_fastx(
             if any(base not in "ACGT" for base in sequence):
                 stats["ambiguous_excluded"] += 1
                 continue
-            five_trim = choose_five_trim(rng, mode, fixed_five_trim)
+            five_trim = choose_five_trim(sequence, seed, mode, fixed_five_trim)
             start, end = trim_bounds(len(record.seq), five_trim)
             trimmed_record = record[start:end]
             # Keep the original identifier exactly; add the selected offset to the description.
@@ -122,7 +131,6 @@ def process_bam(
 
     if pysam is None:
         raise ImportError("BAM processing requires pysam.")
-    rng = random.Random(seed)
     stats = Counter(records_seen=0, length_matched=0, ambiguous_excluded=0, records_written=0)
     offsets = Counter()
 
@@ -150,7 +158,7 @@ def process_bam(
             if any(base not in "ACGT" for base in sequence):
                 stats["ambiguous_excluded"] += 1
                 continue
-            five_trim = choose_five_trim(rng, mode, fixed_five_trim)
+            five_trim = choose_five_trim(sequence, seed, mode, fixed_five_trim)
             start, end = trim_bounds(len(sequence), five_trim)
             new_sequence = sequence[start:end]
             if hasattr(read, "get_forward_qualities"):
@@ -289,6 +297,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         "seed": args.seed,
         "fixed_five_trim": args.fixed_five_trim if args.mode == "fixed" else None,
         "total_trim": TOTAL_TRIM,
+        "randomization_unit": "unique original sequence" if args.mode == "random" else "fixed offset for every sequence",
+        "randomization_method": "BLAKE2b(seed + original sequence) modulo 3" if args.mode == "random" else None,
         "ambiguous_input_policy": "exclude any input read containing symbols outside A/C/G/T before offset sampling",
         "bam_filters": {
             "mapped_only": args.mapped_only,

@@ -1,170 +1,28 @@
 #!/usr/bin/env python3
-"""Plot period-3 simulation results from machine-readable source data.
-
-Required input columns:
-    genome, bias_5prime, bias_3prime, replicate, base, r2
-
-Each replicate/condition must contain exactly one row for each of A, T, G, and C.
-The script first averages R^2 across the four bases within each replicate, then
-plots the mean across independent replicates.  Error bars are 95% t confidence
-intervals across replicate-level means (zero-width for a single replicate).
-"""
-
-from __future__ import annotations
-
-import argparse
-import hashlib
-import json
+import argparse,json,hashlib
 from pathlib import Path
-from typing import Optional, Sequence
-
-import matplotlib
-matplotlib.use("Agg")
+import matplotlib; matplotlib.use('Agg')
 import matplotlib.pyplot as plt
-import numpy as np
-import pandas as pd
+import numpy as np,pandas as pd
 from scipy.stats import t
-
-SCRIPT_VERSION = "2.0.0-audited"
-BASES = ("A", "T", "G", "C")
-REQUIRED = {"genome", "bias_5prime", "bias_3prime", "replicate", "base", "r2"}
-
-
-def load_and_validate(path: Path) -> pd.DataFrame:
-    df = pd.read_csv(path)
-    missing = REQUIRED - set(df.columns)
-    if missing:
-        raise ValueError(f"Input CSV is missing columns: {sorted(missing)}")
-    df = df.loc[:, ["genome", "bias_5prime", "bias_3prime", "replicate", "base", "r2"]].copy()
-    df["base"] = df["base"].astype(str).str.upper()
-    if (~df["base"].isin(BASES)).any():
-        bad = sorted(df.loc[~df["base"].isin(BASES), "base"].unique())
-        raise ValueError(f"Unsupported bases: {bad}")
-    for column in ("bias_5prime", "bias_3prime", "r2"):
-        df[column] = pd.to_numeric(df[column], errors="raise")
-    if ((df["r2"] < 0) | (df["r2"] > 1) | ~np.isfinite(df["r2"])).any():
-        raise ValueError("R^2 values must be finite and lie in [0, 1].")
-    if ((df["bias_5prime"] < 0.5) | (df["bias_5prime"] > 1.0)).any():
-        raise ValueError("bias_5prime must lie in [0.5, 1.0].")
-    if ((df["bias_3prime"] < 0.5) | (df["bias_3prime"] > 1.0)).any():
-        raise ValueError("bias_3prime must lie in [0.5, 1.0].")
-
-    keys = ["genome", "bias_5prime", "bias_3prime", "replicate", "base"]
-    if df.duplicated(keys).any():
-        raise ValueError("Duplicate genome/bias/replicate/base rows were found.")
-    counts = df.groupby(keys[:-1])["base"].agg(lambda values: tuple(sorted(values)))
-    expected = tuple(sorted(BASES))
-    bad = counts[counts != expected]
-    if not bad.empty:
-        raise ValueError(
-            "Every replicate/condition must contain A, T, G, and C exactly once; "
-            f"invalid groups: {list(bad.index[:10])}"
-        )
-    return df
-
-
-def summarize(df: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame]:
-    replicate = (
-        df.groupby(["genome", "bias_5prime", "bias_3prime", "replicate"], as_index=False)
-        .agg(mean_r2_across_bases=("r2", "mean"), sd_r2_across_bases=("r2", "std"))
-    )
-
-    rows = []
-    for keys, group in replicate.groupby(["genome", "bias_5prime", "bias_3prime"], sort=True):
-        values = group["mean_r2_across_bases"].to_numpy(dtype=float)
-        n = len(values)
-        mean = float(values.mean())
-        sd = float(values.std(ddof=1)) if n > 1 else 0.0
-        sem = sd / np.sqrt(n) if n > 1 else 0.0
-        half_width = float(t.ppf(0.975, df=n - 1) * sem) if n > 1 else 0.0
-        rows.append(
-            {
-                "genome": keys[0],
-                "bias_5prime": keys[1],
-                "bias_3prime": keys[2],
-                "n_replicates": n,
-                "mean_r2": mean,
-                "sd_between_replicates": sd,
-                "sem_between_replicates": sem,
-                "ci95_lower": max(0.0, mean - half_width),
-                "ci95_upper": min(1.0, mean + half_width),
-            }
-        )
-    return replicate, pd.DataFrame(rows)
-
-
-def plot_one_genome(summary: pd.DataFrame, genome: str, output: Path) -> None:
-    part = summary.loc[summary["genome"] == genome].copy()
-    if part.empty:
-        raise ValueError(f"No rows for genome '{genome}'.")
-    part = part.sort_values(["bias_5prime", "bias_3prime"]).reset_index(drop=True)
-    labels = [f"{row.bias_5prime:.2f}/{row.bias_3prime:.2f}" for row in part.itertuples()]
-    values = part["mean_r2"].to_numpy(dtype=float)
-    lower = values - part["ci95_lower"].to_numpy(dtype=float)
-    upper = part["ci95_upper"].to_numpy(dtype=float) - values
-
-    fig, ax = plt.subplots(figsize=(8, 5))
-    x = np.arange(len(part))
-    ax.errorbar(x, values, yerr=np.vstack([lower, upper]), marker="o", linewidth=2, capsize=4)
-    ax.set_xticks(x, labels=labels)
-    ax.set_xlabel("5' bias / 3' bias")
-    ax.set_ylabel("Mean period-3 R² across bases")
-    ax.set_ylim(0, 1)
-    ax.set_title(f"{genome}: simulated fragmentation")
-    ax.grid(alpha=0.3)
-    fig.tight_layout()
-    output.parent.mkdir(parents=True, exist_ok=True)
-    fig.savefig(output, dpi=400, bbox_inches="tight")
-    fig.savefig(output.with_suffix(".pdf"), bbox_inches="tight")
-    plt.close(fig)
-
-
-def build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input-csv", type=Path, required=True)
-    parser.add_argument("--outdir", type=Path, required=True)
-    return parser
-
-
-def main(argv: Optional[Sequence[str]] = None) -> int:
-    args = build_parser().parse_args(argv)
-    df = load_and_validate(args.input_csv)
-    replicate, summary = summarize(df)
-    args.outdir.mkdir(parents=True, exist_ok=True)
-    replicate_path = args.outdir / "simulation_replicate_means.csv"
-    summary_path = args.outdir / "simulation_condition_summary.csv"
-    replicate.to_csv(replicate_path, index=False)
-    summary.to_csv(summary_path, index=False)
-    plot_paths = []
-    for genome in summary["genome"].drop_duplicates():
-        safe = "".join(ch if ch.isalnum() or ch in "-_" else "_" for ch in str(genome))
-        plot_path = args.outdir / f"simulation_r2_{safe}.png"
-        plot_one_genome(summary, str(genome), plot_path)
-        plot_paths.extend([str(plot_path), str(plot_path.with_suffix(".pdf"))])
-    manifest = {
-        "script": "plot_simulation_r2.py",
-        "script_version": SCRIPT_VERSION,
-        "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
-        "input_csv": str(args.input_csv.resolve()),
-        "summary_rule": (
-            "average R2 across A/T/G/C within each replicate, then mean and 95% t CI "
-            "across independent replicate means"
-        ),
-        "input_rows": len(df),
-        "replicate_rows": len(replicate),
-        "condition_rows": len(summary),
-        "outputs": {
-            "replicate_means_csv": str(replicate_path),
-            "condition_summary_csv": str(summary_path),
-            "plots": plot_paths,
-        },
-    }
-    manifest_path = args.outdir / "simulation_plot_manifest.json"
-    manifest_path.write_text(json.dumps(manifest, indent=2))
-    print(f"Wrote source summaries and {summary['genome'].nunique()} genome plot(s) to {args.outdir}")
-    print(f"Manifest: {manifest_path}")
-    return 0
-
-
-if __name__ == "__main__":
-    raise SystemExit(main())
+VERSION='2.1.0-audited-random-label'; BASES=('A','T','G','C')
+ORDER=[('random',.5,.5,'random\nfragmentation'),('b055_050',.55,.5,'0.55/0.50'),('b070_050',.7,.5,'0.70/0.50'),('b080_050',.8,.5,'0.80/0.50'),('b090_050',.9,.5,'0.90/0.50'),('b100_050',1.,.5,'1.00/0.50'),('b100_100',1.,1.,'1.00/1.00')]
+ap=argparse.ArgumentParser(); ap.add_argument('--input-csv',type=Path,required=True); ap.add_argument('--outdir',type=Path,required=True); a=ap.parse_args(); df=pd.read_csv(a.input_csv)
+req={'genome','condition','bias_5prime','bias_3prime','replicate','base','r2'}
+if req-set(df): raise ValueError(f'Missing columns: {sorted(req-set(df))}')
+rep=df.groupby(['genome','condition','bias_5prime','bias_3prime','replicate'],as_index=False).agg(mean_r2_across_bases=('r2','mean'))
+rows=[]
+for keys,g in rep.groupby(['genome','condition','bias_5prime','bias_3prime'],sort=False):
+ v=g.mean_r2_across_bases.to_numpy(float); n=len(v); mean=float(v.mean()); sd=float(v.std(ddof=1)) if n>1 else 0.; hw=float(t.ppf(.975,n-1)*sd/np.sqrt(n)) if n>1 else 0.
+ rows.append(dict(genome=keys[0],condition=keys[1],bias_5prime=keys[2],bias_3prime=keys[3],n_replicates=n,mean_r2=mean,sd_between_replicates=sd,ci95_lower=max(0,mean-hw),ci95_upper=min(1,mean+hw)))
+s=pd.DataFrame(rows); a.outdir.mkdir(parents=True,exist_ok=True); rep.to_csv(a.outdir/'simulation_replicate_means.csv',index=False); s.to_csv(a.outdir/'simulation_condition_summary.csv',index=False)
+for genome in ('pseudomonas','human'):
+ part=s[s.genome==genome]; rr=[]
+ for cond,b5,b3,label in ORDER:
+  hit=part[(part.condition==cond)&np.isclose(part.bias_5prime,b5)&np.isclose(part.bias_3prime,b3)]
+  if len(hit)!=1: raise ValueError(f'{genome}: expected one row for {cond}, got {len(hit)}')
+  rr.append((hit.iloc[0],label))
+ vals=np.array([r.mean_r2 for r,_ in rr]); lo=np.array([r.ci95_lower for r,_ in rr]); hi=np.array([r.ci95_upper for r,_ in rr]); x=np.arange(7)
+ fig,ax=plt.subplots(figsize=(9,5.5)); ax.errorbar(x,vals,yerr=np.vstack([vals-lo,hi-vals]),marker='o',linewidth=2,capsize=4); ax.set_xticks(x,[lab for _,lab in rr]); ax.set_xlabel("5' bias / 3' bias"); ax.set_ylabel('Mean period-3 R² across bases'); ax.set_ylim(0,1); ax.set_title('Human genome' if genome=='human' else 'Pseudomonas aeruginosa'); ax.grid(alpha=.3); fig.tight_layout(); fig.savefig(a.outdir/f'simulation_r2_{genome}.png',dpi=400,bbox_inches='tight'); fig.savefig(a.outdir/f'simulation_r2_{genome}.pdf',bbox_inches='tight'); plt.close(fig)
+manifest={'script':Path(__file__).name,'script_version':VERSION,'script_sha256':hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),'summary_rule':'Mean R2 across A/T/G/C within each replicate; mean and 95% t CI across independent replicate means.','random_fragmentation_definition':'bias_5prime=0.50 and bias_3prime=0.50; all A/C/G/T boundaries accepted equally'}
+(a.outdir/'simulation_plot_manifest.json').write_text(json.dumps(manifest,indent=2)+'\n'); print(f'Wrote plots to {a.outdir}')

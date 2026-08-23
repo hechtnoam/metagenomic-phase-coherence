@@ -62,10 +62,18 @@ import matplotlib.pyplot as plt
 
 from scipy.stats import chi2
 
-SCRIPT_VERSION = "4.2.0-audited"
+SCRIPT_VERSION = "4.4.0-audited-restart-failure-tolerant"
 
 BASES = ["A", "C", "G", "T"]
 B2I = {b: i for i, b in enumerate(BASES)}
+# Match period3_library_pipeline.py / matplotlib tab10 1-mer colors (A,T,G,C order).
+BASE_COLORS = {
+    "A": "#1f77b4",  # blue
+    "T": "#ff7f0e",  # orange
+    "G": "#2ca02c",  # green
+    "C": "#d62728",  # red
+}
+PLOT_BASE_ORDER = ["A", "T", "G", "C"]
 STATE_NAMES = ["+0", "+1", "+2", "-0", "-1", "-2"]
 STATE_TO_INDEX = {st: i for i, st in enumerate(STATE_NAMES)}
 COMPL = str.maketrans("ACGTNacgtn", "TGCANtgcan")
@@ -427,8 +435,15 @@ def _init_worker(cp: np.ndarray, cm: np.ndarray, alpha: float, max_iter: int, to
 
 
 def _run_restart(seed: int):
-    p, assigns, ll_trace = fit_em(_G_CP, _G_CM, alpha=_G_ALPHA, max_iter=_G_MAX_ITER, tol=_G_TOL, seed=seed)
-    return ll_trace[-1], seed, p, assigns, ll_trace
+    """Run one restart without allowing a nonconvergent restart to kill the pool."""
+    try:
+        p, assigns, ll_trace = fit_em(
+            _G_CP, _G_CM,
+            alpha=_G_ALPHA, max_iter=_G_MAX_ITER, tol=_G_TOL, seed=seed
+        )
+        return True, float(ll_trace[-1]), int(seed), p, assigns, ll_trace, None
+    except RuntimeError as exc:
+        return False, np.nan, int(seed), None, None, [], str(exc)
 
 
 def run_restarts(
@@ -440,19 +455,54 @@ def run_restarts(
     tol: float,
     seeds: Sequence[int],
     threads: int,
-) -> Tuple[float, int, np.ndarray, np.ndarray, List[float]]:
+) -> Tuple[float, int, np.ndarray, np.ndarray, List[float], List[dict]]:
+    """Run multiple initializations, retaining both successes and failures.
+
+    A restart that fails to reach exact assignment stability is recorded as
+    nonconvergent and does not abort the other restarts. The whole fit fails only
+    if no restart converges successfully.
+    """
     best = None
+    restart_records: List[dict] = []
+
+    def record_success(sd, ll, p, assigns, ll_trace):
+        nonlocal best
+        restart_records.append({
+            "seed": int(sd),
+            "converged": True,
+            "final_LL": float(ll),
+            "n_em_e_steps": int(len(ll_trace)),
+            "p_raw": p.copy(),
+            "assigns_raw": assigns.copy(),
+            "error": None,
+        })
+        if (
+            best is None
+            or ll > best[0] + 1e-12
+            or (abs(ll - best[0]) <= 1e-12 and sd < best[1])
+        ):
+            best = (ll, sd, p, assigns, ll_trace)
+
+    def record_failure(sd, error):
+        restart_records.append({
+            "seed": int(sd),
+            "converged": False,
+            "final_LL": np.nan,
+            "n_em_e_steps": int(max_iter),
+            "p_raw": None,
+            "assigns_raw": None,
+            "error": str(error),
+        })
 
     if threads <= 1 or len(seeds) == 1:
         for sd in seeds:
-            p, assigns, ll_trace = fit_em(cp, cm, alpha=alpha, max_iter=max_iter, tol=tol, seed=sd)
-            ll = ll_trace[-1]
-            if (
-                best is None
-                or ll > best[0] + 1e-12
-                or (abs(ll - best[0]) <= 1e-12 and sd < best[1])
-            ):
-                best = (ll, sd, p, assigns, ll_trace)
+            try:
+                p, assigns, ll_trace = fit_em(
+                    cp, cm, alpha=alpha, max_iter=max_iter, tol=tol, seed=sd
+                )
+                record_success(sd, ll_trace[-1], p, assigns, ll_trace)
+            except RuntimeError as exc:
+                record_failure(sd, exc)
     else:
         start_methods = mp.get_all_start_methods()
         ctx = mp.get_context("fork") if "fork" in start_methods else mp.get_context()
@@ -461,17 +511,23 @@ def run_restarts(
             initializer=_init_worker,
             initargs=(cp, cm, alpha, max_iter, tol),
         ) as pool:
-            for ll, sd, p, assigns, ll_trace in pool.imap_unordered(_run_restart, seeds, chunksize=1):
-                if (
-                    best is None
-                    or ll > best[0] + 1e-12
-                    or (abs(ll - best[0]) <= 1e-12 and sd < best[1])
-                ):
-                    best = (ll, sd, p, assigns, ll_trace)
+            for ok, ll, sd, p, assigns, ll_trace, error in pool.imap_unordered(
+                _run_restart, seeds, chunksize=1
+            ):
+                if ok:
+                    record_success(sd, ll, p, assigns, ll_trace)
+                else:
+                    record_failure(sd, error)
 
     if best is None:
-        raise RuntimeError("No EM restart completed successfully.")
-    return best
+        failures = "; ".join(
+            f"seed {r['seed']}: {r['error']}" for r in restart_records
+        )
+        raise RuntimeError(
+            "No EM restart completed successfully. Restart failures: " + failures
+        )
+
+    return (*best, restart_records)
 
 
 # -----------------------------------------------------------------------------
@@ -726,8 +782,14 @@ def plot_base_probs(p: np.ndarray, outprefix: str, title: Optional[str] = None) 
     x = np.arange(3)
     width = 0.18
     plt.figure()
-    for j, base in enumerate(BASES):
-        plt.bar(x + (j - 1.5) * width, df[base].values, width=width, label=base)
+    for j, base in enumerate(PLOT_BASE_ORDER):
+        plt.bar(
+            x + (j - 1.5) * width,
+            df[base].values,
+            width=width,
+            label=base,
+            color=BASE_COLORS[base],
+        )
     plt.xticks(x, df["pos"])
     plt.ylim(0.0, 1.0)
     plt.xlabel("Position class")
@@ -988,6 +1050,8 @@ def main() -> None:
     rows_gap_state: List[Dict[str, object]] = []
     rows_runnerup: List[Dict[str, object]] = []
     rows_canon: List[Dict[str, object]] = []
+    rows_restart: List[Dict[str, object]] = []
+    rows_restart_probs: List[Dict[str, object]] = []
 
     for raw_length in lengths:
         if not cp_lists[raw_length]:
@@ -997,7 +1061,7 @@ def main() -> None:
         cm = np.stack(cm_lists[raw_length], axis=0)
         seeds = [args.seed + (raw_length * 10007) + r for r in range(max(1, args.restarts))]
 
-        best_ll, seed_used, p_raw, assigns_raw, ll_trace = run_restarts(
+        best_ll, seed_used, p_raw, assigns_raw, ll_trace, restart_records = run_restarts(
             cp,
             cm,
             alpha=args.alpha,
@@ -1008,6 +1072,55 @@ def main() -> None:
         )
 
         effective_length = raw_length - args.trim5 - args.trim3
+
+        # Preserve every restart after canonicalization so restart stability can be
+        # quantified rather than inferred from the winning solution alone.
+        canonical_restart_matrices = []
+        for rec in sorted(restart_records, key=lambda x: x["seed"]):
+            if rec["converged"]:
+                rec_canon = canonicalize_solution(
+                    rec["p_raw"], mode=args.canonicalize, effective_length=effective_length
+                )
+                canonical_restart_matrices.append(rec_canon.p_display)
+                rows_restart.append({
+                    "length": raw_length,
+                    "effective_length": effective_length,
+                    "seed": rec["seed"],
+                    "final_LL": rec["final_LL"],
+                    "delta_LL_from_best": float(best_ll - rec["final_LL"]),
+                    "n_em_e_steps": rec["n_em_e_steps"],
+                    "converged_by_assignment_stability": True,
+                    "is_selected_best": bool(rec["seed"] == seed_used),
+                    "canonical_rotation": rec_canon.rotation,
+                    "canonical_rc_flip": bool(rec_canon.rc_flip),
+                    "failure_reason": "",
+                })
+                for pos_idx in range(3):
+                    for base in BASES:
+                        rows_restart_probs.append({
+                            "length": raw_length,
+                            "effective_length": effective_length,
+                            "seed": rec["seed"],
+                            "position_class": pos_idx + 1,
+                            "base": base,
+                            "prob": float(rec_canon.p_display[pos_idx, B2I[base]]),
+                            "is_selected_best": bool(rec["seed"] == seed_used),
+                        })
+            else:
+                rows_restart.append({
+                    "length": raw_length,
+                    "effective_length": effective_length,
+                    "seed": rec["seed"],
+                    "final_LL": np.nan,
+                    "delta_LL_from_best": np.nan,
+                    "n_em_e_steps": rec["n_em_e_steps"],
+                    "converged_by_assignment_stability": False,
+                    "is_selected_best": False,
+                    "canonical_rotation": np.nan,
+                    "canonical_rc_flip": np.nan,
+                    "failure_reason": rec["error"],
+                })
+
         canon = canonicalize_solution(
             p_raw,
             mode=args.canonicalize,
@@ -1102,6 +1215,8 @@ def main() -> None:
     df_gap_state = pd.DataFrame(rows_gap_state).sort_values(["length", "assigned_state"]) if rows_gap_state else pd.DataFrame()
     df_runnerup = pd.DataFrame(rows_runnerup).sort_values(["length", "assigned_state", "runnerup_state"]) if rows_runnerup else pd.DataFrame()
     df_canon = pd.DataFrame(rows_canon).sort_values("length") if rows_canon else pd.DataFrame()
+    df_restart = pd.DataFrame(rows_restart).sort_values(["length", "seed"]) if rows_restart else pd.DataFrame()
+    df_restart_probs = pd.DataFrame(rows_restart_probs).sort_values(["length", "seed", "position_class", "base"]) if rows_restart_probs else pd.DataFrame()
 
     if not df_probs.empty:
         df_probs.to_csv(os.path.join(args.out, "base_probs_by_length.tsv"), sep="\t", index=False)
@@ -1116,6 +1231,10 @@ def main() -> None:
         df_runnerup.to_csv(os.path.join(args.out, "assignment_runnerup_by_length.tsv"), sep="\t", index=False)
     if not df_canon.empty:
         df_canon.to_csv(os.path.join(args.out, "canonicalization_by_length.tsv"), sep="\t", index=False)
+    if not df_restart.empty:
+        df_restart.to_csv(os.path.join(args.out, "restart_diagnostics_by_length.tsv"), sep="\t", index=False)
+    if not df_restart_probs.empty:
+        df_restart_probs.to_csv(os.path.join(args.out, "restart_base_probs_by_length.tsv"), sep="\t", index=False)
 
     if not df_shift.empty:
         plot_state6_props(df_shift, args.out, args.canonicalize)
@@ -1161,7 +1280,12 @@ def main() -> None:
             "global base composition plus Normal(0, 0.01), clipped and row-normalized; "
             "pseudocount alpha is applied only in the M-step"
         ),
-        "restart_selection": "largest final complete-data hard-assignment log score",
+        "restart_selection": "largest final complete-data hard-assignment log score; ties resolved by smaller seed",
+        "restart_diagnostics": {
+            "all_restarts_retained": True,
+            "summary_file": "restart_diagnostics_by_length.tsv",
+            "canonicalized_base_probabilities_file": "restart_base_probs_by_length.tsv",
+        },
     }
     with open(os.path.join(args.out, "run_metadata.json"), "w") as handle:
         json.dump(metadata, handle, indent=2)
