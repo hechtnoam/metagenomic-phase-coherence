@@ -97,9 +97,10 @@ The release associated with the submitted manuscript is `v1.0.0`. Analysis
 parameters and deterministic random seeds are recorded by the relevant
 workflows and/or their output metadata.
 
-The exact software release associated with the manuscript is permanently
-archived at Zenodo. The DOI for the archived release will be added after the
-release is deposited.
+The exact software release associated with the submitted manuscript
+(version 1.0.0) is permanently archived at Zenodo:
+
+https://doi.org/10.5281/zenodo.22098156
 
 ## Citation
 
