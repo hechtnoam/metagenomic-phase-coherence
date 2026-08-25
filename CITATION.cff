@@ -1,19 +1,39 @@
 cff-version: 1.2.0
 message: "If you use this software, please cite the associated manuscript."
-title: "Period-3 periodicity in metagenomic sequencing reads"
+title: "Metagenomic phase coherence analysis"
 type: software
+
 authors:
   - family-names: Hecht
     given-names: Noam
-    email: noamhecht@mail.tau.ac.il
+  - family-names: Duek
+    given-names: Nicolas
+  - family-names: Dotan
+    given-names: Yuval
+  - family-names: Rosset
+    given-names: Saharon
+  - family-names: Slon
+    given-names: Viviane
+  - family-names: Safra
+    given-names: Muli
+
 version: 1.0.0
 license: MIT
-date-released: 2026-08-19
 repository-code: "https://github.com/hechtnoam/metagenomic-phase-coherence"
+
 preferred-citation:
   type: article
-  title: "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads"
+  title: "Ubiquitous 3-Base Periodicity in Complex DNA Mixtures and a Fast, Alignment-Free Algorithm to Uncover Its Source"
   authors:
     - family-names: Hecht
       given-names: Noam
-  notes: "Complete the full author list, journal, year, volume, pages, and DOI when finalized."
+    - family-names: Duek
+      given-names: Nicolas
+    - family-names: Dotan
+      given-names: Yuval
+    - family-names: Rosset
+      given-names: Saharon
+    - family-names: Slon
+      given-names: Viviane
+    - family-names: Safra
+      given-names: Muli

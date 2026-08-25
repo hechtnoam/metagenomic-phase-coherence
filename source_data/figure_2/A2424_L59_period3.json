@@ -1,0 +1,72 @@
+{
+  "article": "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads",
+  "csv": "results/libraries/A2424/csv/kmer/L59/k1.csv",
+  "read_length": 59,
+  "read_count": 306862,
+  "observed_read_count": 308515,
+  "window": [
+    10,
+    40
+  ],
+  "alpha": 0.05,
+  "permutations": 10000,
+  "seed": 602758,
+  "period3_statistics_version": "3.0.0-audited",
+  "period3_statistics_sha256": "fa168f4755bbf27544f037bbefbe97b314387954ef463fe15027e44942dc695d",
+  "status": "ok",
+  "all_significant": true,
+  "fits": [
+    {
+      "base": "A",
+      "n_cycles": 31,
+      "intercept": 0.20524407082208296,
+      "cos_coef": -0.006125248680534109,
+      "sin_coef": 0.00216146178582775,
+      "r2": 0.9384358703427905,
+      "p_value": 9.999000099990002e-05,
+      "p_value_adjusted": 0.00039996000399960006,
+      "significant": true,
+      "amplitude": 0.006495428273022382,
+      "phase_degrees": 160.56321495206493
+    },
+    {
+      "base": "T",
+      "n_cycles": 31,
+      "intercept": 0.2266096120988547,
+      "cos_coef": -0.008904585083453792,
+      "sin_coef": -0.003320718207417107,
+      "r2": 0.9425151377874607,
+      "p_value": 9.999000099990002e-05,
+      "p_value_adjusted": 0.00039996000399960006,
+      "significant": true,
+      "amplitude": 0.00950362062171777,
+      "phase_degrees": 200.45160633852538
+    },
+    {
+      "base": "G",
+      "n_cycles": 31,
+      "intercept": 0.2904482974579629,
+      "cos_coef": 0.010009237199309646,
+      "sin_coef": 0.006068923564512003,
+      "r2": 0.9817210861825691,
+      "p_value": 9.999000099990002e-05,
+      "p_value_adjusted": 0.00039996000399960006,
+      "significant": true,
+      "amplitude": 0.011705411677678537,
+      "phase_degrees": 31.229785427713555
+    },
+    {
+      "base": "C",
+      "n_cycles": 31,
+      "intercept": 0.27769801962109897,
+      "cos_coef": 0.005020596564678241,
+      "sin_coef": -0.004909667142922647,
+      "r2": 0.94786750232738,
+      "p_value": 9.999000099990002e-05,
+      "p_value_adjusted": 0.00039996000399960006,
+      "significant": true,
+      "amplitude": 0.00702219490754516,
+      "phase_degrees": 315.6400155647978
+    }
+  ]
+}

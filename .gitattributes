@@ -1,0 +1,2 @@
+*.tsv -whitespace
+*.csv -whitespace
