@@ -20,6 +20,8 @@ authors:
 version: 1.0.0
 license: MIT
 repository-code: "https://github.com/hechtnoam/metagenomic-phase-coherence"
+url: "https://doi.org/10.5281/zenodo.22098156"
+doi: "10.5281/zenodo.22098156"
 
 preferred-citation:
   type: article
