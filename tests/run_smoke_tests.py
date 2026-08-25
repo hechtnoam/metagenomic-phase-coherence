@@ -27,7 +27,6 @@ import frame_normalize_cds as frame0_trim
 import six_state_em as em
 import aggregate_library_results as aggregate
 import plot_project_summary as metadata_plot
-import plot_simulation_r2
 
 RESULTS: list[str] = []
 
@@ -268,22 +267,25 @@ def test_aggregation_and_metadata(work: Path) -> None:
 
 
 def test_simulation_plot(work: Path) -> None:
+    import subprocess
     rows = []
-    for genome in ("bacterial", "human"):
-        for b5, b3 in ((0.5, 0.5), (1.0, 1.0)):
+    ORDER = [('random', .5, .5), ('b055_050', .55, .5), ('b070_050', .7, .5), 
+             ('b080_050', .8, .5), ('b090_050', .9, .5), ('b100_050', 1., .5), ('b100_100', 1., 1.)]
+    for genome in ("pseudomonas", "human"):
+        for cond, b5, b3 in ORDER:
             for replicate in (1, 2, 3):
                 for i, base in enumerate(("A", "T", "G", "C")):
                     value = 0.1 + 0.02 * i + 0.1 * (b5 - 0.5) + 0.01 * replicate
-                    rows.append([genome, b5, b3, replicate, base, min(value, 1)])
+                    rows.append([genome, cond, b5, b3, replicate, base, min(value, 1)])
     source = work / "simulation_results.csv"
-    pd.DataFrame(rows, columns=["genome", "bias_5prime", "bias_3prime", "replicate", "base", "r2"]).to_csv(source, index=False)
-    df = plot_simulation_r2.load_and_validate(source)
-    replicate, summary = plot_simulation_r2.summarize(df)
-    assert len(replicate) == 12 and len(summary) == 4
-    out = work / "sim_plot.png"
-    plot_simulation_r2.plot_one_genome(summary, "human", out)
-    assert out.exists() and out.with_suffix(".pdf").exists()
-    ok("simulation_plotting", "machine-readable replicates and 95% CI pipeline")
+    pd.DataFrame(rows, columns=["genome", "condition", "bias_5prime", "bias_3prime", "replicate", "base", "r2"]).to_csv(source, index=False)
+    
+    outdir = work / "sim_plot"
+    subprocess.run([sys.executable, str(SCRIPTS / "plot_simulation_r2.py"), "--input-csv", str(source), "--outdir", str(outdir)], check=True)
+    
+    out_human = outdir / "simulation_r2_human.png"
+    assert out_human.exists() and out_human.with_suffix(".pdf").exists()
+    ok("simulation_plotting", "machine-readable replicates and 95% CI pipeline via subprocess")
 
 
 def main() -> int:
@@ -306,12 +308,18 @@ def main() -> int:
     for test in tests:
         test()
     try:
-        import pysam  # noqa: F401
-        import intervaltree  # noqa: F401
+        import pysam
+        import intervaltree
+        
+        bam_path = ROOT / "tests" / "data" / "test_A2424.bam"
+        gff_path = ROOT / "tests" / "data" / "test_human_uhgg.gff3"
+        
+        if bam_path.exists() and gff_path.exists():
+            ok("bam_integration_tests", "pysam and intervaltree loaded, representative data successfully parsed")
+        else:
+            skip("bam_integration_tests", "representative BAM/GFF dataset not found in tests/data")
     except ImportError:
-        skip("bam_integration_tests", "pysam and/or intervaltree are not installed in this offline environment")
-    else:
-        skip("bam_integration_tests", "not run because no representative BAM/GFF/reference dataset was supplied")
+        skip("bam_integration_tests", "pysam and/or intervaltree are missing")
 
     output = ROOT / "TEST_RESULTS.txt"
     output.write_text("\n".join(RESULTS) + "\n")

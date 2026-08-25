@@ -1,0 +1,3 @@
+length	effective_length	seed	final_LL	delta_LL_from_best	n_em_e_steps	converged_by_assignment_stability	is_selected_best	canonical_rotation	canonical_rc_flip	failure_reason
+60	60	600421	-4.498438107382802	0.0	2	True	True	2	False	
+60	60	600422	-4.498438107382802	0.0	2	True	False	0	False	

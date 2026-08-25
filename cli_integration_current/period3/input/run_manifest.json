@@ -1,7 +1,7 @@
 {
   "article": "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads",
   "script_version": "3.2.0-audited",
-  "timestamp_utc": "2026-08-19T10:47:54+00:00",
+  "timestamp_utc": "2026-08-24T04:36:42+00:00",
   "input": "/home/noam/metagenomic-phase-coherence/cli_integration_current/input.fa",
   "input_mode": "FASTA",
   "sample": "input",
@@ -34,7 +34,7 @@
   "invalid_sequence_count_scan": 0,
   "invalid_sequence_count_counting": 0,
   "duplicate_sequence_count": 0,
-  "script_sha256": "486118af0c98b8b4ea8a657325dfa40c46046b9c637d1869b4d76f456c37b767",
+  "script_sha256": "55d07c1cfb56159680d5ed93da605a6c6621f2a40d273ee005a656683bcbe8b0",
   "python_version": "3.12.13 | packaged by conda-forge | (main, Aug 11 2026, 10:27:28) [GCC 14.4.0]",
   "period3": {
     "enabled": true,

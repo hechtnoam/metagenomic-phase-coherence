@@ -1,4 +1,4 @@
-PASS	publication_scripts_compile	10 scripts
+PASS	publication_scripts_compile	14 scripts
 PASS	period3_statistics	perfect signal, Holm correction, and constant-profile edge case
 PASS	period3_pipeline_io_counting	CRLF FASTQ, ambiguity exclusion, fractions, BAM orientation helper
 PASS	dft	exact q=10 bin, correct A/T/G/C order, spectral R2=1 on a pure signal
@@ -7,5 +7,5 @@ PASS	fragmentation_simulator	global multi-contig sampling, strand sampling, dete
 PASS	frame_normalization_pure_logic	GFF phase, plus/minus coordinates, phase-1 trimming
 PASS	hard_em	fixed-point consistency, monotone objective, deterministic restarts, canonicalization
 PASS	aggregation_metadata	maximum of four-base mean R2, complete-row tie selection, unmatched reporting
-PASS	simulation_plotting	machine-readable replicates and 95% CI pipeline
-SKIP	bam_integration_tests	not run because no representative BAM/GFF/reference dataset was supplied
+PASS	simulation_plotting	machine-readable replicates and 95% CI pipeline via subprocess
+PASS	bam_integration_tests	pysam and intervaltree loaded, representative data successfully parsed

@@ -58,25 +58,19 @@ python "$CODE/plot_project_summary.py" \
   --r2-csv "$WORK/aggregate/best.csv" --metadata-tsv "$WORK/meta.tsv" \
   --outdir "$WORK/meta_plots" --parameters project_name --min-libraries-per-category 1
 
-cat > "$WORK/simulation_results.csv" <<'CSV'
-genome,bias_5prime,bias_3prime,replicate,base,r2
-bacterial,0.5,0.5,1,A,0.01
-bacterial,0.5,0.5,1,T,0.02
-bacterial,0.5,0.5,1,G,0.03
-bacterial,0.5,0.5,1,C,0.04
-bacterial,0.5,0.5,2,A,0.02
-bacterial,0.5,0.5,2,T,0.03
-bacterial,0.5,0.5,2,G,0.04
-bacterial,0.5,0.5,2,C,0.05
-bacterial,1.0,1.0,1,A,0.80
-bacterial,1.0,1.0,1,T,0.82
-bacterial,1.0,1.0,1,G,0.84
-bacterial,1.0,1.0,1,C,0.86
-bacterial,1.0,1.0,2,A,0.82
-bacterial,1.0,1.0,2,T,0.84
-bacterial,1.0,1.0,2,G,0.86
-bacterial,1.0,1.0,2,C,0.88
-CSV
+python - "$WORK/simulation_results.csv" <<'PY'
+import sys, pandas as pd
+rows = []
+ORDER = [('random', .5, .5), ('b055_050', .55, .5), ('b070_050', .7, .5), 
+         ('b080_050', .8, .5), ('b090_050', .9, .5), ('b100_050', 1., .5), ('b100_100', 1., 1.)]
+for genome in ("pseudomonas", "human"):
+    for cond, b5, b3 in ORDER:
+        for rep in (1, 2):
+            for base in ("A", "T", "G", "C"):
+                rows.append((genome, cond, b5, b3, rep, base, 0.5))
+df = pd.DataFrame(rows, columns=["genome", "condition", "bias_5prime", "bias_3prime", "replicate", "base", "r2"])
+df.to_csv(sys.argv[1], index=False)
+PY
 python "$CODE/plot_simulation_r2.py" --input-csv "$WORK/simulation_results.csv" --outdir "$WORK/sim_plot"
 
 test -s "$WORK/period3/input/run_manifest.json"
@@ -87,6 +81,14 @@ test -s "$WORK/sim/simulated_reads.fasta.metadata.json"
 test -s "$WORK/aggregate/period3_aggregation_manifest.json"
 test -s "$WORK/meta_plots/metadata_plot_manifest.json"
 test -s "$WORK/sim_plot/simulation_plot_manifest.json"
+
+BAM_TEST="$ROOT/tests/data/test_A2424.bam"
+if [[ -f "$BAM_TEST" ]]; then
+    python "$CODE/six_state_em.py" --input "$BAM_TEST" --input-type bam \
+      --out "$WORK/em_bam" --lengths 59 --restarts 1 --threads 1 --max-iter 10 \
+      --canonicalize full6 --progress-every 0
+    test -s "$WORK/em_bam/run_metadata.json"
+fi
 
 printf 'PASS\tcli_integration\tall runnable reviewed command-line entry points produced expected outputs and manifests\n' > "$ROOT/CLI_INTEGRATION_RESULTS.txt"
 cat "$ROOT/CLI_INTEGRATION_RESULTS.txt"

@@ -1,7 +1,7 @@
 {
   "script": "phase_redistribution.py",
-  "script_version": "2.2.0-audited",
-  "script_sha256": "1f0cb352817959bcb215bed238fca83be5036d1f3935a30fbc01148acfb062bd",
+  "script_version": "2.3.0-audited-sequence-level-randomization",
+  "script_sha256": "258ad4ed32027341a22c0f146b87b75fc3d80378f6c04b55d51ee9d99ba0ce61",
   "input": "/home/noam/metagenomic-phase-coherence/cli_integration_current/input.fa",
   "output": "/home/noam/metagenomic-phase-coherence/cli_integration_current/trim/input.phase_randomized.fasta",
   "input_format": "fasta",
@@ -11,6 +11,8 @@
   "seed": 9,
   "fixed_five_trim": null,
   "total_trim": 2,
+  "randomization_unit": "unique original sequence",
+  "randomization_method": "BLAKE2b(seed + original sequence) modulo 3",
   "ambiguous_input_policy": "exclude any input read containing symbols outside A/C/G/T before offset sampling",
   "bam_filters": {
     "mapped_only": false,
@@ -24,9 +26,9 @@
     "ambiguous_excluded": 0,
     "records_written": 180,
     "offset_counts": {
-      "0": 71,
-      "1": 50,
-      "2": 59
+      "0": 0,
+      "1": 180,
+      "2": 0
     }
   }
 }
