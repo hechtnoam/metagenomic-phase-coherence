@@ -2,7 +2,7 @@
 """
 period3_library_pipeline.py
 
-Publication-ready k-mer cycle-composition pipeline for the article:
+Publication-ready k-mer read-position-composition pipeline for the article:
 "Widespread phase-coherent three-base periodicity in metagenomic sequencing reads".
 
 The pipeline intentionally preserves the plotting style and period-3 statistical
@@ -845,7 +845,7 @@ _legend_side = legend_on_right
 
 
 def plot_k1(path: Path, fractions: np.ndarray, sample: str, read_length: int, n_reads: int, style: str = "dots") -> None:
-    """Save the original-style 1-mer cycle-composition plot."""
+    """Save the original-style 1-mer read-position-composition plot."""
 
     ensure_parent(path)
     x = np.arange(1, fractions.shape[0] + 1)
@@ -864,7 +864,7 @@ def plot_k1(path: Path, fractions: np.ndarray, sample: str, read_length: int, n_
     ax.set_ylim(0.07, 0.52) 
 
     ax.set_title(f"{sample} (n={format_count(n_reads)})")
-    legend = legend_on_right(ax, title="k-mer")
+    legend = legend_on_right(ax, title="Base")
     fig.tight_layout(rect=(0, 0, 0.82, 1))
     fig.savefig(path, bbox_extra_artists=(legend,), bbox_inches="tight")
     plt.close(fig)
@@ -901,7 +901,7 @@ def plot_kN(path: Path, fractions: np.ndarray, sample: str, k: int, read_length:
             )
         )
 
-    ax.set_xlabel("Cycle (start of k-mer)")
+    ax.set_xlabel("Read position (start of k-mer)")
     ax.set_ylabel("Fraction")
     ax.set_title(f"{sample} — {k}-mer  —  (n={format_count(n_reads)})")
     ncol = 1 if k == 2 else 3
@@ -1363,8 +1363,8 @@ def add_common_arguments(parser: argparse.ArgumentParser) -> None:
         help="Default length filter: process observed lengths with at least this many reads",
     )
     parser.add_argument("--no-period3", action="store_true", help="Disable automatic period-3 statistics for k=1")
-    parser.add_argument("--p3-start", type=int, default=P3_START, help="Start cycle for period-3 window")
-    parser.add_argument("--p3-end", type=int, default=P3_END, help="End cycle for period-3 window")
+    parser.add_argument("--p3-start", type=int, default=P3_START, help="Start read position for period-3 window")
+    parser.add_argument("--p3-end", type=int, default=P3_END, help="End read position for period-3 window")
     parser.add_argument("--p3-alpha", type=float, default=P3_ALPHA, help="Alpha for period-3 significance")
     parser.add_argument("--p3-perms", type=int, default=P3_PERMUTATIONS, help="Permutation count for p-values")
     parser.add_argument("--p3-seed", type=int, default=P3_SEED, help="Random seed for period-3 permutations")

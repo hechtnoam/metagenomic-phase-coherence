@@ -316,7 +316,7 @@ def test_threefold_from_csv(*args, **kwargs) -> Period3TestResult:
 
 
 def phase_means_by_base(df: pd.DataFrame, start: int, end: int) -> Dict[str, List[float]]:
-    """Compute mean nucleotide fraction for each cycle modulo 3 phase."""
+    """Compute mean nucleotide fraction for each read-position modulo-3 phase."""
 
     subset = slice_cycle_window(df, start, end)
     phases = (subset["cycle"] % 3).map({0: 0, 1: 1, 2: 2}).to_numpy()
@@ -439,7 +439,7 @@ def plot_phase_profile_single(
         values = [pattern[base][phase] for base in BASES]
         ax.bar(x_positions + (j - 1) * width, values, width=width, label=f"phase {phase}")
     ax.set_xticks(x_positions, labels=BASES)
-    ax.set_ylabel("Mean fraction (cycles % 3)")
+    ax.set_ylabel("Mean fraction (positions mod 3)")
     ax.set_title(f"{title}\nphase profile {window[0]}–{window[1]}")
     ax.legend()
     fig.tight_layout()
@@ -496,7 +496,7 @@ def plot_compare_phase_profiles(
     ax.bar(x_positions - width / 2, values1, width=width, label=labels[0])
     ax.bar(x_positions + width / 2, values2, width=width, label=f"{labels[1]} (shift {shift})")
     ax.set_xticks(x_positions, labels=x_labels, rotation=45, ha="right")
-    ax.set_ylabel("Mean fraction (cycles % 3)")
+    ax.set_ylabel("Mean fraction (positions mod 3)")
     ax.set_title(f"Phase profiles {window[0]}–{window[1]} (shift‑aligned)")
     ax.legend()
     fig.tight_layout()
@@ -630,14 +630,14 @@ def _cmd_compare_two(ns: argparse.Namespace) -> None:
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
-        description="Test and compare period-3 structure in 1-mer cycle-fraction CSVs."
+        description="Test and compare period-3 structure in 1-mer read-position fraction CSVs."
     )
     subparsers = parser.add_subparsers(dest="cmd", required=True)
 
     test_parser = subparsers.add_parser("test", help="Significance test of period-3 structure")
     test_sub = test_parser.add_subparsers(dest="which", required=True)
     one_parser = test_sub.add_parser("one", help="Test one 1-mer CSV")
-    one_parser.add_argument("csv", type=str, help="Path to 1-mer CSV with columns cycle,A,T,G,C")
+    one_parser.add_argument("csv", type=str, help="Path to 1-mer CSV with columns cycle,A,T,G,C (cycle is the machine-readable read-position field)")
     one_parser.add_argument("--start", type=int, default=10)
     one_parser.add_argument("--end", type=int, default=40)
     one_parser.add_argument("--alpha", type=float, default=0.05)
