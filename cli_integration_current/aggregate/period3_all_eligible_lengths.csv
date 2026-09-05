@@ -1,2 +1,0 @@
-sample,category,read_length,read_count,observed_read_count,mean_r2,min_base_r2,max_base_r2,all_four_bases_present,source_json
-input,internal_ancient,60,180,180,0.6666666666666666,0.0,0.8888888888888888,True,/home/noam/metagenomic-phase-coherence/cli_integration_current/period3/input/stats/period3/kmer/L60/k1_period3.json

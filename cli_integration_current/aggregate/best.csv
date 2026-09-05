@@ -1,2 +1,0 @@
-sample,category,best_length,best_length_read_count,best_length_observed_read_count,max_r2,best_length_min_base_r2,best_length_max_base_r2,n_eligible_lengths,min_eligible_length,max_eligible_length,median_mean_r2,mean_mean_r2_across_lengths,best_length_source_json
-input,internal_ancient,60,180,180,0.6666666666666666,0.0,0.8888888888888888,1,60,60,0.6666666666666666,0.6666666666666666,/home/noam/metagenomic-phase-coherence/cli_integration_current/period3/input/stats/period3/kmer/L60/k1_period3.json

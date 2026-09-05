@@ -1,7 +1,0 @@
-{
-  "script": "plot_simulation_r2.py",
-  "script_version": "2.1.0-audited-random-label",
-  "script_sha256": "9bc9ba9c06116c26caf4dfb67b7a6d551e9c38da513fbe5457909f2be2b1ae7a",
-  "summary_rule": "Mean R2 across A/T/G/C within each replicate; mean and 95% t CI across independent replicate means.",
-  "random_fragmentation_definition": "bias_5prime=0.50 and bias_3prime=0.50; all A/C/G/T boundaries accepted equally"
-}
