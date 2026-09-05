@@ -948,7 +948,7 @@ def write_kmer_csv(csv_path: Path, fractions: np.ndarray, k: int) -> None:
 def period3_fit_to_json(fit) -> Dict[str, object]:
     return {
         "base": fit.base,
-        "n_positions": fit.n_positions,
+        "n_positions": fit.n_cycles,
         "intercept": fit.intercept,
         "cos_coef": fit.cos_coef,
         "sin_coef": fit.sin_coef,

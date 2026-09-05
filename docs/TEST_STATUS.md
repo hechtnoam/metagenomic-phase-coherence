@@ -1,10 +1,17 @@
 # Test status
 
-The GitHub-ready package was checked on 2026-08-19.
+The release candidate was tested on 2026-09-05 in the
+`period3-metagenomic-reads` environment.
 
-- All 10 publication-facing Python scripts compile.
-- `python tests/run_smoke_tests.py` passes all runnable pure-Python tests.
-- `bash tests/run_cli_integration.sh` passes for the runnable FASTA/CSV workflows and produces the expected manifests/outputs.
-- BAM/CRAM/GFF integration remains environment/data dependent and should be rerun with representative aligned inputs before the submission release.
+- `python3 tests/run_smoke_tests.py` passes all reported checks, including
+  compilation of 17 publication scripts, period-3 statistics, FASTA/FASTQ/BAM
+  input handling, DFT, phase redistribution, fragmentation simulation,
+  coding-frame normalization logic, hard-EM fitting, aggregation, simulation
+  plotting, and BAM integration.
+- `bash tests/run_cli_integration.sh` is the end-to-end command-line integration
+  test for the released scripts. The release should be tagged only after this
+  command completes successfully.
+- Generated test workspaces are excluded from version control by `.gitignore`.
 
-The test scripts create temporary/generated output directories that are ignored by `.gitignore`.
+Release-level test results should be regenerated after any code change affecting
+the analysis pipeline.
