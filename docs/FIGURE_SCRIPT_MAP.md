@@ -2,7 +2,7 @@
 
 | Manuscript analysis | Primary script(s) |
 |---|---|
-| Read-cycle nucleotide-frequency profiles | `scripts/period3_library_pipeline.py` |
+| Read-position nucleotide-frequency profiles | `scripts/period3_library_pipeline.py` |
 | Period-3 sinusoidal fit, amplitude, R2, permutation testing | `scripts/period3_statistics.py` |
 | DFT frequency-domain analysis | `scripts/dft_mod3.py` |
 | Random phase redistribution / matched trimming controls | `scripts/phase_redistribution.py` |

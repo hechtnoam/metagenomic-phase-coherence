@@ -1,7 +1,7 @@
 # Period-3 structure in complex DNA sequencing libraries
 
 Code and source data supporting the manuscript
-****“Widespread 3-Base Periodicity in Complex DNA Mixtures and an Alignment-Free Algorithm to Uncover its Source”**
+**“Widespread 3-Base Periodicity in Complex DNA Mixtures and an Alignment-Free Algorithm to Uncover its Source”**
 
 This repository contains the analysis and validation workflows used to
 characterize read-coordinate three-base periodicity in ancient and modern

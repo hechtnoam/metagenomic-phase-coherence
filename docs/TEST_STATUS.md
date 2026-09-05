@@ -8,9 +8,8 @@ The release candidate was tested on 2026-09-05 in the
   input handling, DFT, phase redistribution, fragmentation simulation,
   coding-frame normalization logic, hard-EM fitting, aggregation, simulation
   plotting, and BAM integration.
-- `bash tests/run_cli_integration.sh` is the end-to-end command-line integration
-  test for the released scripts. The release should be tagged only after this
-  command completes successfully.
+- `bash tests/run_cli_integration.sh` passes the end-to-end command-line integration
+  test for the released scripts and produced the expected outputs and manifests.
 - Generated test workspaces are excluded from version control by `.gitignore`.
 
 Release-level test results should be regenerated after any code change affecting
