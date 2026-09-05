@@ -1,7 +1,7 @@
 # Period-3 structure in complex DNA sequencing libraries
 
 Code and source data supporting the manuscript
-**“Ubiquitous 3-Base Periodicity in Complex DNA Mixtures and a Fast, Alignment-Free Algorithm to Uncover Its Source.”**
+**“Widespread 3-Base Periodicity in Complex DNA Mixtures and an Alignment-Free Algorithm to Uncover its Source"**
 
 This repository contains the analysis and validation workflows used to
 characterize read-coordinate three-base periodicity in ancient and modern
@@ -25,7 +25,7 @@ Alternatively, Python dependencies are listed in `requirements.txt`.
 
 | Analysis | Script |
 |---|---|
-| Cycle nucleotide profiles and period-3 pipeline | `scripts/period3_library_pipeline.py` |
+| Read-position nucleotide profiles and period-3 pipeline | `scripts/period3_library_pipeline.py` |
 | Sinusoidal period-3 fits and permutation tests | `scripts/period3_statistics.py` |
 | DFT spectrum and frequency-1/3 summaries | `scripts/dft_mod3.py` |
 | Phase redistribution and fixed-trim controls | `scripts/phase_redistribution.py` |
@@ -55,8 +55,8 @@ python3 scripts/period3_library_pipeline.py all reads.fastq.gz \
   --p3-perms 10000
 ```
 
-The primary period-3 regression window is cycles 10–40 inclusive. The DFT
-analysis uses cycles 10–39, giving a 30-cycle window in which frequency 1/3
+The primary period-3 regression window is read positions 10–40 inclusive. The DFT
+analysis uses read positions 10–39, giving a 30-read-position window in which frequency 1/3
 falls exactly on a Fourier bin.
 
 ## Data and source data

@@ -25,7 +25,7 @@ doi: "10.5281/zenodo.22098156"
 
 preferred-citation:
   type: article
-  title: "Ubiquitous 3-Base Periodicity in Complex DNA Mixtures and a Fast, Alignment-Free Algorithm to Uncover Its Source"
+  title: "Widespread 3-Base Periodicity in Complex DNA Mixtures and an Alignment-Free Algorithm to Uncover its Source"
   authors:
     - family-names: Hecht
       given-names: Noam

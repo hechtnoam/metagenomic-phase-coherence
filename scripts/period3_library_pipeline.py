@@ -530,7 +530,7 @@ def allocate_count_tables(
 
 
 def update_k1_counts(matrix: np.ndarray, sequence: str) -> None:
-    """Update per-cycle 1-mer counts for one sequence."""
+    """Update per-position 1-mer counts for one sequence."""
 
     bases = np.frombuffer(sequence.encode("ascii"), dtype="S1")
     matrix[:, 0] += bases == b"A"
@@ -540,7 +540,7 @@ def update_k1_counts(matrix: np.ndarray, sequence: str) -> None:
 
 
 def update_kmer_counts(matrix: np.ndarray, sequence: str, k: int) -> None:
-    """Update per-cycle k-mer counts for k=2 or k=3."""
+    """Update per-position k-mer counts for k=2 or k=3."""
 
     bases = np.frombuffer(sequence.encode("ascii"), dtype="S1")
     length = len(sequence)
@@ -871,7 +871,7 @@ def plot_k1(path: Path, fractions: np.ndarray, sample: str, read_length: int, n_
 
 
 def plot_kN(path: Path, fractions: np.ndarray, sample: str, k: int, read_length: int, n_reads: int, style: str = "dots") -> None:
-    """Save the original-style 2-mer or 3-mer cycle-composition plot."""
+    """Save the original-style 2-mer or 3-mer position-composition plot."""
 
     ensure_parent(path)
     x = np.arange(1, fractions.shape[0] + 1)
@@ -926,7 +926,7 @@ _plot_kN = plot_kN
 
 def fractions_from_counts(counts: np.ndarray, denominator: int) -> np.ndarray:
     if int(denominator) <= 0:
-        raise ValueError("Cannot compute cycle fractions with a non-positive read count.")
+        raise ValueError("Cannot compute position fractions with a non-positive read count.")
     fractions = counts.astype(float)
     fractions /= int(denominator)
     return fractions
@@ -940,15 +940,15 @@ def write_kmer_csv(csv_path: Path, fractions: np.ndarray, k: int) -> None:
     tokens = list(BASES) if k == 1 else kmer_tokens(k)
     with open(csv_path, "w", newline="") as handle:
         writer = csv.writer(handle)
-        writer.writerow(["cycle", *tokens])
-        for cycle_index in range(fractions.shape[0]):
-            writer.writerow([cycle_index + 1, *[fractions[cycle_index, j] for j in range(fractions.shape[1])]])
+        writer.writerow(["position", *tokens])
+        for position_index in range(fractions.shape[0]):
+            writer.writerow([position_index + 1, *[fractions[position_index, j] for j in range(fractions.shape[1])]])
 
 
 def period3_fit_to_json(fit) -> Dict[str, object]:
     return {
         "base": fit.base,
-        "n_cycles": fit.n_cycles,
+        "n_positions": fit.n_positions,
         "intercept": fit.intercept,
         "cos_coef": fit.cos_coef,
         "sin_coef": fit.sin_coef,
@@ -1389,7 +1389,7 @@ def add_common_arguments(parser: argparse.ArgumentParser) -> None:
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run k-mer cycle-composition and period-3 analyses for ancient/modern DNA libraries. "
+            "Run k-mer position-composition and period-3 analyses for ancient/modern DNA libraries. "
             "drop-T analyses are intentionally not part of this publication pipeline."
         )
     )
