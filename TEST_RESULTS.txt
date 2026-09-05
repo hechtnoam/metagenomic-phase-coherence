@@ -1,4 +1,4 @@
-PASS	publication_scripts_compile	14 scripts
+PASS	publication_scripts_compile	17 scripts
 PASS	period3_statistics	perfect signal, Holm correction, and constant-profile edge case
 PASS	period3_pipeline_io_counting	CRLF FASTQ, ambiguity exclusion, fractions, BAM orientation helper
 PASS	dft	exact q=10 bin, correct A/T/G/C order, spectral R2=1 on a pure signal

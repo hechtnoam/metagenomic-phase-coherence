@@ -1,7 +1,7 @@
 # Period-3 structure in complex DNA sequencing libraries
 
 Code and source data supporting the manuscript
-**“Widespread 3-Base Periodicity in Complex DNA Mixtures and an Alignment-Free Algorithm to Uncover its Source"**
+****“Widespread 3-Base Periodicity in Complex DNA Mixtures and an Alignment-Free Algorithm to Uncover its Source”**
 
 This repository contains the analysis and validation workflows used to
 characterize read-coordinate three-base periodicity in ancient and modern
@@ -40,6 +40,8 @@ Alternatively, Python dependencies are listed in `requirements.txt`.
 | Fragmentation summary figure | `scripts/plot_simulation_r2.py` |
 | Six-state EM figure | `scripts/plot_six_state_em_figure.py` |
 | Supplementary Table S1 generation | `scripts/generate_supplementary_table_S1.py` |
+| Figures 1 and 2 | `scripts/plot_manuscript_figures_1_2.py` |
+| Phase-redistribution figure | `scripts/plot_phase_redistribution_figure.py` |
 
 Additional reproduction information is provided in
 `docs/REPRODUCING_THE_PAPER.md` and `docs/FIGURE_SCRIPT_MAP.md`.
@@ -56,7 +58,7 @@ python3 scripts/period3_library_pipeline.py all reads.fastq.gz \
 ```
 
 The primary period-3 regression window is read positions 10–40 inclusive. The DFT
-analysis uses read positions 10–39, giving a 30-read-position window in which frequency 1/3
+analysis uses read positions 10–39, giving a 30-position window in which frequency 1/3
 falls exactly on a Fourier bin.
 
 ## Data and source data
