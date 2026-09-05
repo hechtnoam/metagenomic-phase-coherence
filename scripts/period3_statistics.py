@@ -99,19 +99,31 @@ CompareResult = Period3ComparisonResult
 
 
 def load_one_mer_csv(csv_path: str | Path) -> pd.DataFrame:
-    """Load and validate a 1-mer CSV with columns cycle,A,T,G,C."""
+    """Load and validate a 1-mer read-position CSV.
+
+    Publication-facing files use 'position'. The legacy 'cycle' header is
+    still accepted for backward compatibility and normalized internally.
+    """
 
     df = pd.read_csv(csv_path)
-    expected = {"cycle", *BASES}
-    if not expected.issubset(df.columns):
+    coordinate = (
+        "position" if "position" in df.columns
+        else "cycle" if "cycle" in df.columns
+        else None
+    )
+    expected_bases = set(BASES)
+    if coordinate is None or not expected_bases.issubset(df.columns):
         raise ValueError(
-            f"CSV must contain columns {sorted(expected)}; got {list(df.columns)}"
+            "CSV must contain a coordinate column named 'position' (preferred) "
+            f"or legacy 'cycle', plus {sorted(expected_bases)}; got {list(df.columns)}"
         )
-    df = df.loc[:, ["cycle", *BASES]].copy()
+    df = df.loc[:, [coordinate, *BASES]].copy()
+    if coordinate != "cycle":
+        df = df.rename(columns={coordinate: "cycle"})
     df["cycle"] = pd.to_numeric(df["cycle"], errors="raise").astype(int)
     if df["cycle"].duplicated().any():
-        duplicate_cycles = sorted(df.loc[df["cycle"].duplicated(), "cycle"].unique())
-        raise ValueError(f"Cycle column contains duplicates: {duplicate_cycles[:10]}")
+        duplicate_positions = sorted(df.loc[df["cycle"].duplicated(), "cycle"].unique())
+        raise ValueError(f"Read-position column contains duplicates: {duplicate_positions[:10]}")
     for base in BASES:
         df[base] = pd.to_numeric(df[base], errors="raise").astype(float)
         if not np.isfinite(df[base]).all():
@@ -119,7 +131,6 @@ def load_one_mer_csv(csv_path: str | Path) -> pd.DataFrame:
         if ((df[base] < 0.0) | (df[base] > 1.0)).any():
             raise ValueError(f"Column {base} contains values outside [0, 1].")
     return df.sort_values("cycle").reset_index(drop=True)
-
 
 def slice_cycle_window(df: pd.DataFrame, start: int, end: int) -> pd.DataFrame:
     """Return rows whose cycle is in the inclusive [start, end] window."""
