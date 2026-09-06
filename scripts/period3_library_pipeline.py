@@ -2,12 +2,6 @@
 """
 period3_library_pipeline.py
 
-Publication-ready k-mer read-position-composition pipeline for the article:
-"Widespread phase-coherent three-base periodicity in metagenomic sequencing reads".
-
-The pipeline intentionally preserves the plotting style and period-3 statistical
-rationale of the original scripts while making the requested publication changes:
-
 * k=1 is the default analysis; k=2 and k=3 are optional via --k.
 * default length selection uses every observed read length with at least 40,000
   reads instead of a fixed list of read lengths.
