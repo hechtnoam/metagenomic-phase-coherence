@@ -2,10 +2,6 @@
 """
 period3_statistics.py
 
-Statistical utilities for the article:
-"Widespread phase-coherent three-base periodicity in metagenomic sequencing reads".
-
-The routines in this module preserve the original statistical rationale:
 period-3 structure is measured in 1-mer cycle-fraction CSV files by fitting
 sine/cosine components with a fixed period of three cycles and estimating
 p-values by permutation. The plotting helpers are intentionally kept visually
